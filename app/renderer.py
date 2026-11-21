@@ -15,7 +15,10 @@ MARGIN = 1
 
 COLOR_BG = (0, 0, 0)
 COLOR_TEXT = (255, 255, 255)
-COLOR_LABEL = (120, 200, 255)
+# labels are white everywhere so the only colour on screen is the value
+COLOR_LABEL = (255, 255, 255)
+# accent blue is reserved for data names, not captions
+COLOR_ACCENT = (120, 200, 255)
 COLOR_POS = (80, 220, 120)
 COLOR_NEG = (255, 110, 110)
 COLOR_BAR_BG = (40, 40, 40)
@@ -132,7 +135,7 @@ def render_goal(data: dict) -> bytes:
         return _encode(img)
 
     name, name_font = _fit_name(data["name"], WIDTH - 2 * MARGIN)
-    draw.text((MARGIN, MARGIN), name, fill=COLOR_LABEL, font=name_font)
+    draw.text((MARGIN, MARGIN), name, fill=COLOR_ACCENT, font=name_font)
 
     pct = data.get("pct")
     text = f"{pct:.0f}%" if pct is not None else "n/a"
@@ -197,13 +200,13 @@ def render_bill(data: dict) -> bytes:
         return _encode(img)
 
     name, name_font = _fit_name(data["name"], WIDTH - 2 * MARGIN)
-    draw.text((MARGIN, MARGIN), name, fill=COLOR_LABEL, font=name_font)
+    draw.text((MARGIN, MARGIN), name, fill=COLOR_ACCENT, font=name_font)
     _draw_centered(draw, money(data.get("amount")), 9, [16, 14, 12], COLOR_TEXT)
 
     days = data.get("days")
     if days is not None:
         when = "today" if days <= 0 else ("tomorrow" if days == 1 else f"in {days}d")
-        _draw_centered(draw, when, 23, [6, 5], COLOR_LABEL, bold=False)
+        _draw_centered(draw, when, 23, [6, 5], COLOR_ACCENT, bold=False)
     return _encode(img)
 
 
@@ -234,10 +237,8 @@ def _dashboard_cells(data: dict) -> list[dict]:
     savings = cashflow.get("savings")
 
     specs = [
-        # Net worth stays neutral when positive: a permanent green would make
-        # green meaningless, but negative net worth is a genuine alarm.
         ("NW", compact_money(networth.get("value")), COLOR_LABEL,
-         COLOR_TEXT if (networth.get("value") or 0) >= 0 else COLOR_NEG),
+         COLOR_POS if (networth.get("value") or 0) >= 0 else COLOR_NEG),
         ("BUD", f"{pct:.0f}%" if pct is not None else "n/a", COLOR_LABEL,
          COLOR_POS if (pct or 0) <= 100 else COLOR_NEG),
         ("SAVE", f"{rate * 100:.0f}%" if rate is not None else "n/a", COLOR_LABEL,
@@ -320,7 +321,7 @@ def render_error(reason: str = "") -> bytes:
     _label(draw, "MONARCH", color=COLOR_NEG)
     _draw_centered(draw, "OFFLINE", 9, [16, 14, 12], COLOR_TEXT)
     if reason:
-        _draw_centered(draw, reason, 23, [6, 5], COLOR_LABEL, bold=False)
+        _draw_centered(draw, reason, 23, [6, 5], COLOR_ACCENT, bold=False)
     return _encode(img)
 
 

@@ -18,7 +18,7 @@ CASES = [
         "networth": {"value": 1_786_495},
         "budget": {"pct": 75.7},
         "cashflow": {"rate": 0.218, "savings": 5325.54},
-    }, {"NW": TEXT, "BUD": POS, "SAVE": POS, "CF": POS}),
+    }, {"NW": POS, "BUD": POS, "SAVE": POS, "CF": POS}),
     ("negative net worth", {
         "networth": {"value": -1_234_567},
         "budget": {"pct": 75.7},
@@ -28,7 +28,7 @@ CASES = [
         "networth": {"value": 1_786_495},
         "budget": {"pct": 145.0},
         "cashflow": {"rate": -0.48, "savings": -3900},
-    }, {"NW": TEXT, "BUD": NEG, "SAVE": NEG, "CF": NEG}),
+    }, {"NW": POS, "BUD": NEG, "SAVE": NEG, "CF": NEG}),
 ]
 
 CELLS = {"NW": (0, 0), "BUD": (32, 0), "SAVE": (0, 16), "CF": (32, 16)}
@@ -55,6 +55,20 @@ for label, data, expected in CASES:
         print(f"{label:28} {cell:5} dominant={dominant} want={want} {'ok' if ok else 'MISMATCH'}")
         if not ok:
             failures.append(f"{label} {cell}: got {dominant}, want {want}")
+
+        # captions are always white
+        label_colors = Counter()
+        for y in range(y0, y0 + 6):
+            for x in range(x0, x0 + 32):
+                c = px[x, y]
+                if c != (0, 0, 0):
+                    label_colors[c] += 1
+        if label_colors:
+            # 7pt text is mostly antialiased blends, so judge by the brightest
+            # pixel: white keeps every channel high, green and red do not.
+            lab = max(label_colors, key=lambda c: sum(c))
+            if min(lab) < 180:
+                failures.append(f"{label} {cell}: label brightest pixel is {lab}, want white {TEXT}")
 
 print()
 for f in failures:

@@ -68,16 +68,18 @@ Or on Unraid, use the template in `templates/tidbyt-monarch-template.xml`.
 
 ## Colours
 
-Labels are always blue. Values follow one idea, "green is fine, red wants attention, white is just information":
+Captions are always white, so the only colour on screen is the value itself. Values are green when things are fine and red when they want attention:
 
 | Cell | Rule |
 |---|---|
-| `NW` | White when positive, red when negative. It is not green on purpose, a permanently green cell would make green meaningless |
+| `NW` | Green when net worth is positive, red when negative |
 | `BUD` | Green at or under 100% of the month's budget, red above it. Measured against the budget, not against zero |
 | `SAVE` | Green at or above a 0% savings rate, red below |
 | `CF` | Green when net cashflow is positive, red when negative |
 
-`tools/color_check.py` asserts these by sampling rendered pixels.
+The full-screen views use the same rules. Blue is reserved for data names such as a merchant or a goal title, which are content rather than captions.
+
+`tools/color_check.py` asserts these by sampling rendered pixels: value colour per cell across positive, negative and over-budget cases, plus a check that every caption is white.
 
 ## Month-to-date behaviour
 
