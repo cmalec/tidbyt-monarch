@@ -1,0 +1,12 @@
+# Build context hygiene: never ship a session file, local renders, or dev tools.
+.git
+.github
+data
+preview
+tests
+tools
+__pycache__
+*.pyc
+*.pickle
+.env
+*.md

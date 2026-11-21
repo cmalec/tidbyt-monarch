@@ -1,3 +1,5 @@
-monarchmoneycommunity>=1.7.1
-Pillow>=10.0.0
-requests>=2.31.0
+# Pinned: the release workflow publishes on every push, so an upstream surprise
+# must not reach the display unattended. Bump deliberately.
+monarchmoneycommunity==1.7.1
+Pillow==13.0.0
+requests==2.34.2

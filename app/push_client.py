@@ -1,6 +1,9 @@
 """Push rendered frames to a Tidbyt device or a Tronbyt server."""
 import base64
+from urllib.parse import quote
+
 import requests
+
 from app import config
 
 
@@ -10,6 +13,7 @@ def push_image(image_bytes: bytes, installation_id: str = "monarch") -> dict:
     Tidbyt cloud answers with JSON; Tronbyt answers with plain text
     ("WebP received."), so a non-JSON body is a success, not an error.
     """
+    device = quote(config.TIDBYT_DEVICE_ID, safe="")
     payload = {
         "deviceID": config.TIDBYT_DEVICE_ID,
         "image": base64.b64encode(image_bytes).decode("utf-8"),
@@ -17,7 +21,7 @@ def push_image(image_bytes: bytes, installation_id: str = "monarch") -> dict:
         "background": False,
     }
     resp = requests.post(
-        f"{config.TIDBYT_API_BASE}/devices/{config.TIDBYT_DEVICE_ID}/push",
+        f"{config.TIDBYT_API_BASE}/devices/{device}/push",
         json=payload,
         headers={"Authorization": f"Bearer {config.TIDBYT_API_KEY}"},
         timeout=30,

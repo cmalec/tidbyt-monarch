@@ -25,6 +25,9 @@ services:
       - UPDATE_INTERVAL=${UPDATE_INTERVAL:-180}
       - GOAL_ID=${GOAL_ID:-}
       - BUDGET_CATEGORY=${BUDGET_CATEGORY:-}
+      - DEBUG_VALUES=${DEBUG_VALUES:-}
+      - PUID=${PUID:-99}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-America/Los_Angeles}
     volumes:
       - ./data:/data

@@ -9,7 +9,37 @@ env:
   IMAGE: cmalec/tidbyt-monarch
 
 jobs:
+  # Nothing is published until the offline suite passes: this workflow pushes
+  # :latest on every commit and Unraid pulls that automatically.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install fonts the renderer needs
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fonts-dejavu
+
+      - name: Install dependencies
+        run: pip install --no-cache-dir -r requirements.txt
+
+      - name: Self test (currency, layout, colours, parsers, cache, config)
+        run: python -m tools.selftest
+
+      - name: Scheduler test (push-on-change, alerts, error isolation)
+        run: python -m tools.cycle_test
+
+      - name: Push client smoke test
+        run: python -m tools.smoke
+
+      - name: Render every view to prove the frames build
+        run: python -m tools.preview /tmp/preview
+
   release:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read

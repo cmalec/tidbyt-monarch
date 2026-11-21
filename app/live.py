@@ -1,5 +1,5 @@
-"""Fetch the live views from Monarch and save each rendered frame plus an 8x
-upscale, printing the parsed values. Run inside the image."""
+"""Fetch the live views from Monarch, save an 8x upscaled PNG of each rendered
+frame to /out, and print the parsed values. Run inside the image."""
 import asyncio
 import io
 import os

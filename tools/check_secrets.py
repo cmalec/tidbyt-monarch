@@ -1,29 +1,61 @@
-"""Report which Monarch secrets exist in BWS, and whether the MFA value is a
-raw base32 seed or an otpauth:// URI. Never prints secret values."""
-import json, os, subprocess
-from urllib.parse import urlparse, parse_qs
+"""Report which Monarch secrets exist in BWS and whether the MFA value is a
+usable TOTP seed. Never prints secret values.
 
-TOKEN = json.load(open(os.path.expanduser("~/.config/bws/config.json")))["access_token"]
-out = subprocess.run(["bws", "secret", "list"], capture_output=True, text=True,
-                     env=dict(os.environ, BWS_ACCESS_TOKEN=TOKEN), timeout=60)
-secrets = {s.get("key"): s.get("value") for s in json.loads(out.stdout)}
+    python3 tools/check_secrets.py
+"""
+import json
+import os
+import subprocess
+from urllib.parse import parse_qs, urlparse
 
-wanted = ["monarch-email", "monarch-password", "monarch-mfa-secret"]
-for key in wanted:
-    val = secrets.get(key)
-    if val is None:
-        print(f"{key:20} MISSING")
-        continue
-    if key == "monarch-email":
-        masked = val[:3] + "..." + val.split("@")[-1] if "@" in val else "(no @)"
-        print(f"{key:20} present, looks like {masked}")
-    elif key == "monarch-password":
-        print(f"{key:20} present, {len(val)} chars")
-    else:
-        if val.lower().startswith("otpauth://"):
-            q = parse_qs(urlparse(val).query)
-            secret = (q.get("secret") or [""])[0]
-            label = urlparse(val).path.strip("/")
-            print(f"{key:20} otpauth URI, label={label}, secret len={len(secret)}, base32 alphabet={all(c.isalnum() for c in secret)}")
+BASE32 = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567")
+
+
+def mask(value: str) -> str:
+    if "@" in value:
+        return value[:3] + "..." + value.split("@")[-1]
+    return f"{len(value)} chars"
+
+
+def base32_ok(secret: str) -> bool:
+    cleaned = secret.replace(" ", "").replace("-", "").rstrip("=").upper()
+    return bool(cleaned) and set(cleaned) <= BASE32
+
+
+def main() -> int:
+    token = json.load(open(os.path.expanduser("~/.config/bws/config.json")))["access_token"]
+    out = subprocess.run(
+        ["bws", "secret", "list"], capture_output=True, text=True,
+        env=dict(os.environ, BWS_ACCESS_TOKEN=token), timeout=60,
+    )
+    if out.returncode != 0:
+        print("bws list failed:", out.stderr.strip()[:300])
+        return 1
+    secrets = {s.get("key"): s.get("value") for s in json.loads(out.stdout)}
+
+    ok = True
+    for key in ("monarch-email", "monarch-password", "monarch-mfa-secret"):
+        value = secrets.get(key)
+        if not value:
+            print(f"{key:20} MISSING")
+            ok = False
+            continue
+        if key == "monarch-email":
+            print(f"{key:20} present, {mask(value)}")
+        elif key == "monarch-password":
+            print(f"{key:20} present, {len(value)} chars")
         else:
-            print(f"{key:20} raw value, len={len(val)}, base32 alphabet={all(c.isalnum() for c in val)}")
+            if value.lower().startswith("otpauth://"):
+                secret = (parse_qs(urlparse(value).query).get("secret") or [""])[0]
+                label = urlparse(value).path.strip("/")
+                print(f"{key:20} otpauth URI label={label} seed={len(secret)} chars "
+                      f"base32={base32_ok(secret)}")
+                ok = ok and base32_ok(secret)
+            else:
+                print(f"{key:20} raw seed {len(value)} chars base32={base32_ok(value)}")
+                ok = ok and base32_ok(value)
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

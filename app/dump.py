@@ -28,6 +28,7 @@ async def main():
 
     checks = [
         ("accounts", source.mm.get_accounts()),
+        ("budgets", source.mm.get_budgets()),
         ("savings_goals", source.mm.get_savings_goals()),
         ("cashflow_summary", source.mm.get_cashflow_summary()),
         ("recurring_streams", source.mm.get_recurring_transaction_streams(include_liabilities=True)),
@@ -43,6 +44,7 @@ async def main():
     print("\n=== parsed")
     for label, coro in [
         ("net_worth", source.net_worth()),
+        ("budget", source.budget()),
         ("goal", source.goal()),
         ("cashflow", source.cashflow()),
         ("next_bill", source.next_bill()),
