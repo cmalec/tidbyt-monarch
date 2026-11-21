@@ -17,9 +17,11 @@ services:
       # Tidbyt cloud by default; for Tronbyt use http://<server>:<port>/v0
       - TIDBYT_API_BASE=${TIDBYT_API_BASE:-https://api.tidbyt.com/v0}
       # Optional behaviour
-      - VIEWS=${VIEWS:-networth,budget,cashflow,bill}
+      - VIEWS=${VIEWS:-dashboard}
+      - CACHE_TTL=${CACHE_TTL:-10800}
       - UPDATE_INTERVAL=${UPDATE_INTERVAL:-180}
       - GOAL_ID=${GOAL_ID:-}
+      - BUDGET_CATEGORY=${BUDGET_CATEGORY:-}
       - TZ=${TZ:-America/Los_Angeles}
     volumes:
       - ./data:/data

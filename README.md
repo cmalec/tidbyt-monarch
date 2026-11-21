@@ -11,7 +11,7 @@ It renders the frames itself and pushes them to your device. No Starlark, no clo
 3. **Push** - sends it to your Tidbyt cloud device or your own Tronbyt server
 4. **Rotate** - sleeps `UPDATE_INTERVAL`, then pushes the next view
 
-One view per push, cycling through `VIEWS`. At the default 180 seconds each view is on screen for three minutes.
+By default one frame holds everything: net worth, budget, savings rate and cashflow in a 2x2 grid. Set `VIEWS` to a comma-separated list to rotate full-screen views instead.
 
 ## Views
 
@@ -36,9 +36,10 @@ When something breaks, the panel shows a `MONARCH OFFLINE` frame rather than fre
 | `TIDBYT_DEVICE_ID` | Yes | - | Device id on Tidbyt cloud, or the device id in Tronbyt |
 | `TIDBYT_API_KEY` | Yes | - | Tidbyt API key, or the per-device key from Tronbyt |
 | `TIDBYT_API_BASE` | No | `https://api.tidbyt.com/v0` | Push target. Tronbyt: `http://<host>:<port>/v0` |
-| `VIEWS` | No | `networth,budget,cashflow,bill` | Any subset of the five views, in rotation order |
+| `VIEWS` | No | `dashboard` | `dashboard` for the 2x2 grid, or a comma-separated rotation such as `networth,bill` |
 | `BUDGET_CATEGORY` | No | - | Budget category name to track, exact match. Empty shows the month's totals |
 | `UPDATE_INTERVAL` | No | `180` | Seconds each view stays on the panel |
+| `CACHE_TTL` | No | `10800` | Seconds fetched data is reused before calling Monarch again. `0` disables the cache |
 | `GOAL_ID` | No | - | Show a specific savings goal instead of the first active one |
 | `TZ` | No | `America/Los_Angeles` | Timezone for logs and "today" |
 

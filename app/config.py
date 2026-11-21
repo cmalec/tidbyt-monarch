@@ -38,7 +38,7 @@ except ValueError:
     raise ValueError(f"UPDATE_INTERVAL must be an integer, got: {_update_interval_raw!r}")
 
 ALL_VIEWS = ("dashboard", "networth", "budget", "goal", "cashflow", "bill")
-VIEWS = [v.strip().lower() for v in os.getenv("VIEWS", "networth,budget,cashflow,bill").split(",") if v.strip()]
+VIEWS = [v.strip().lower() for v in os.getenv("VIEWS", "dashboard").split(",") if v.strip()]
 _unknown = [v for v in VIEWS if v not in ALL_VIEWS]
 if _unknown:
     raise ValueError(f"Unknown VIEWS entries: {_unknown}. Valid: {list(ALL_VIEWS)}")
@@ -50,6 +50,17 @@ GOAL_ID = os.getenv("GOAL_ID", "")
 
 # Which budget category the budget view shows. Empty = the month's totals.
 BUDGET_CATEGORY = os.getenv("BUDGET_CATEGORY", "")
+
+# How long fetched Monarch data is reused before hitting the API again.
+# The panel refreshes much more often than the data changes; 3 hours keeps
+# one login's worth of requests well clear of Monarch's rate limits.
+_cache_ttl_raw = os.getenv("CACHE_TTL", "10800")
+try:
+    CACHE_TTL = int(_cache_ttl_raw)
+except ValueError:
+    raise ValueError(f"CACHE_TTL must be an integer number of seconds, got: {_cache_ttl_raw!r}")
+if CACHE_TTL < 0:
+    raise ValueError("CACHE_TTL must be zero or greater")
 
 # Number of months of history for the cashflow view.
 CASHFLOW_MONTHS = int(os.getenv("CASHFLOW_MONTHS", "1"))

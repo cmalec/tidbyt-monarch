@@ -20,6 +20,8 @@ COLOR_POS = (80, 220, 120)
 COLOR_NEG = (255, 110, 110)
 COLOR_BAR_BG = (40, 40, 40)
 
+GRID_VALUE_SIZES = (11, 10, 9, 8, 7, 6)
+
 FONT_REGULAR = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
@@ -246,16 +248,37 @@ def _dashboard_cells(data: dict) -> list[dict]:
     for idx, (label, value, label_color, value_color) in enumerate(specs):
         x = (idx % 2) * cell_w
         y = (idx // 2) * cell_h
+
         label_font = _fit(label, cell_w - 2, [7, 6, 5], bold=True)
-        value_font = _fit(value, cell_w - 2, [11, 10, 9, 8, 7, 6], bold=True)
-        value_w = _measure(value, value_font)[0]
+        label_bottom = y + _ink_bottom(label, label_font) - 1  # last ink row
+
+        # Largest size that fits the cell width AND leaves 1 clear row between
+        # the label ink and the value ink.
+        value_font = _font(min(GRID_VALUE_SIZES), bold=True)
+        value_y = y + cell_h - _ink_bottom(value, value_font) - 1
+        for size in GRID_VALUE_SIZES:
+            candidate = _font(size, bold=True)
+            if _measure(value, candidate)[0] > cell_w - 2:
+                continue
+            candidate_y = y + cell_h - _ink_bottom(value, candidate) - 1
+            candidate_top = candidate_y + candidate.getbbox(value)[1]
+            if candidate_top >= label_bottom + 2:
+                value_font, value_y = candidate, candidate_y
+                break
+            # keep the largest that fits width even if the gap rule fails
+            if value_font is None:
+                value_font, value_y = candidate, candidate_y
+
+        value_top = value_y + value_font.getbbox(value)[1]
         cells.append({
             "x": x, "y": y, "w": cell_w, "h": cell_h,
             "label": label, "value": value,
             "label_color": label_color, "value_color": value_color,
             "label_font": label_font, "value_font": value_font,
-            "fits": value_w <= cell_w - 2,
-            "value_w": value_w,
+            "value_y": value_y,
+            "fits": _measure(value, value_font)[0] <= cell_w - 2,
+            "value_w": _measure(value, value_font)[0],
+            "gap": value_top - label_bottom - 1,
         })
     return cells
 
@@ -269,6 +292,10 @@ def dashboard_fit_report(data: dict) -> list[str]:
                 f"dashboard {cell['label']}: {cell['value']!r} is {cell['value_w']}px, "
                 f"cell is {cell['w'] - 2}px"
             )
+        if cell["gap"] < 1:
+            problems.append(
+                f"dashboard {cell['label']}: only {cell['gap']}px between label and value"
+            )
     return problems
 
 
@@ -280,8 +307,7 @@ def render_dashboard(data: dict) -> bytes:
         draw.text((cell["x"] + (cell["w"] - lw) // 2, cell["y"]),
                   cell["label"], fill=cell["label_color"], font=cell["label_font"])
         vw, _ = _measure(cell["value"], cell["value_font"])
-        value_y = cell["y"] + cell["h"] - _ink_bottom(cell["value"], cell["value_font"]) - 1
-        value_y = max(cell["y"] + 1, value_y)
+        value_y = cell["value_y"]
         draw.text((cell["x"] + (cell["w"] - vw) // 2, value_y),
                   cell["value"], fill=cell["value_color"], font=cell["value_font"])
     return _encode(img)

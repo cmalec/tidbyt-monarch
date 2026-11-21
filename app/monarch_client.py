@@ -5,6 +5,7 @@ schema moves, so every accessor tolerates missing keys and returns None
 rather than raising, and `python -m app.dump` prints the real shapes.
 """
 import os
+import time
 from datetime import date, datetime, timedelta, timezone
 
 from monarchmoney import MonarchMoney, RequireMFAException
@@ -54,6 +55,23 @@ class MonarchSource:
 
     def __init__(self):
         self.mm = MonarchMoney(session_file=config.MONARCH_SESSION_FILE)
+        self._cache: dict[str, tuple[float, object]] = {}
+
+    async def _cached(self, key: str, factory):
+        """Reuse a fetched payload until CACHE_TTL expires.
+
+        Monarch's numbers change far slower than the panel refreshes, and each
+        call is a request against a rate-limited private API.
+        """
+        if config.CACHE_TTL <= 0:
+            return await factory()
+        hit = self._cache.get(key)
+        now = time.monotonic()
+        if hit is not None and now - hit[0] < config.CACHE_TTL:
+            return hit[1]
+        value = await factory()
+        self._cache[key] = (now, value)
+        return value
 
     async def connect(self) -> str:
         """Reuse a saved session when possible, else log in. Returns how."""
@@ -82,6 +100,9 @@ class MonarchSource:
 
     # --- data -----------------------------------------------------------
     async def net_worth(self) -> dict:
+        return await self._cached("networth", self._net_worth)
+
+    async def _net_worth(self) -> dict:
         payload = await self.mm.get_accounts()
         accounts = _as_records(payload, "accounts")
         total = 0.0
@@ -99,6 +120,9 @@ class MonarchSource:
         return {"value": total, "accounts": counted}
 
     async def goal(self) -> dict:
+        return await self._cached("goal", self._goal)
+
+    async def _goal(self) -> dict:
         payload = await self.mm.get_savings_goals()
         goals = _as_records(payload, "savingsGoals", "goals")
         active = [g for g in goals if not g.get("archivedAt") and g.get("status") != "archived"]
@@ -119,6 +143,9 @@ class MonarchSource:
         return {"name": name, "target": target, "current": current, "pct": pct}
 
     async def cashflow(self) -> dict:
+        return await self._cached("cashflow", self._cashflow)
+
+    async def _cashflow(self) -> dict:
         today = date.today()
         start = today.replace(day=1)
         payload = await self.mm.get_cashflow_summary(
@@ -144,6 +171,9 @@ class MonarchSource:
         }
 
     async def budget(self) -> dict:
+        return await self._cached("budget", self._budget)
+
+    async def _budget(self) -> dict:
         """Budget progress for the current month.
 
         Shows one category when BUDGET_CATEGORY names one, else the totals.
@@ -211,6 +241,9 @@ class MonarchSource:
         }
 
     async def next_bill(self) -> dict:
+        return await self._cached("bill", self._next_bill)
+
+    async def _next_bill(self) -> dict:
         payload = await self.mm.get_recurring_transaction_streams(include_liabilities=True)
         streams = _as_records(payload, "recurringTransactionStreams", "streams")
         today = datetime.now(timezone.utc).date()

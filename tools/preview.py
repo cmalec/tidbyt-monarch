@@ -70,6 +70,39 @@ def check_dashboard() -> None:
             failures.append(f"dashboard[{label}]: {problem}")
 
 
+def check_gap_pixels() -> None:
+    """Pixel-level: each grid cell must have a blank row between label and value."""
+    for label, data in (("synthetic", SYNTHETIC["dashboard"]), ("edge", EDGE["dashboard"])):
+        img = Image.open(io.BytesIO(render("dashboard", data))).convert("RGB")
+        px = img.load()
+        cells = {
+            "NW": (0, 0), "BUD": (32, 0), "SAVE": (0, 16), "CF": (32, 16),
+        }
+        for name, (x0, y0) in cells.items():
+            rows = []
+            for y in range(y0, y0 + 16):
+                lit = any(px[x, y] != (0, 0, 0) for x in range(x0, x0 + 32))
+                rows.append(lit)
+            # contiguous blocks of lit rows
+            blocks, run = [], None
+            for idx, lit in enumerate(rows):
+                if lit and run is None:
+                    run = idx
+                elif not lit and run is not None:
+                    blocks.append((run, idx - 1))
+                    run = None
+            if run is not None:
+                blocks.append((run, len(rows) - 1))
+            if len(blocks) < 2:
+                failures.append(f"dashboard[{label}] {name}: only {len(blocks)} text block(s)")
+                continue
+            gap = blocks[-1][0] - blocks[0][1] - 1
+            if gap < 1:
+                failures.append(
+                    f"dashboard[{label}] {name}: {gap}px gap between label and value"
+                )
+
+
 def check_money() -> None:
     cases = {
         987: "$987",
@@ -102,6 +135,7 @@ def main() -> int:
     print("-- checks --")
     check_fit()
     check_dashboard()
+    check_gap_pixels()
     check_money()
     for problem in failures:
         print("FAIL:", problem)
