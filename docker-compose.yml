@@ -1,0 +1,25 @@
+services:
+  tidbyt-monarch:
+    image: ghcr.io/cmalec/tidbyt-monarch:latest
+    container_name: tidbyt-monarch
+    restart: unless-stopped
+    environment:
+      # Required: Monarch login (a password is needed even if you sign in with Google;
+      # set one under Settings > Security)
+      - MONARCH_EMAIL=${MONARCH_EMAIL:?set MONARCH_EMAIL}
+      - MONARCH_PASSWORD=${MONARCH_PASSWORD:?set MONARCH_PASSWORD}
+      # Optional but required for unattended re-login: TOTP secret from
+      # Settings > Security > Enable MFA ("two-factor text code")
+      - MONARCH_MFA_SECRET=${MONARCH_MFA_SECRET:-}
+      # Required: push target
+      - TIDBYT_DEVICE_ID=${TIDBYT_DEVICE_ID:?set TIDBYT_DEVICE_ID}
+      - TIDBYT_API_KEY=${TIDBYT_API_KEY:?set TIDBYT_API_KEY}
+      # Tidbyt cloud by default; for Tronbyt use http://<server>:<port>/v0
+      - TIDBYT_API_BASE=${TIDBYT_API_BASE:-https://api.tidbyt.com/v0}
+      # Optional behaviour
+      - VIEWS=${VIEWS:-networth,goal,cashflow,bill}
+      - UPDATE_INTERVAL=${UPDATE_INTERVAL:-60}
+      - GOAL_ID=${GOAL_ID:-}
+      - TZ=${TZ:-America/Los_Angeles}
+    volumes:
+      - ./data:/data

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>tidbyt-monarch</Name>
+  <Repository>ghcr.io/cmalec/tidbyt-monarch:latest</Repository>
+  <Registry>https://ghcr.io</Registry>
+  <TemplateURL>https://raw.githubusercontent.com/cmalec/tidbyt-monarch/main/templates/tidbyt-monarch-template.xml</TemplateURL>
+  <Network>bridge</Network>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/cmalec/tidbyt-monarch/issues</Support>
+  <Project>https://github.com/cmalec/tidbyt-monarch</Project>
+  <Overview>
+    Show Monarch Money on your Tidbyt: net worth, savings goal progress, monthly cash flow, and the next bill due.
+    Renders locally and pushes the pixels to Tidbyt cloud or a self-hosted Tronbyt server.
+  </Overview>
+  <Description>
+    Show Monarch Money on your Tidbyt: net worth, savings goal progress, monthly cash flow, and the next bill due.
+    Renders locally and pushes the pixels to Tidbyt cloud or a self-hosted Tronbyt server.
+    Requires a Monarch email and password. Set MONARCH_MFA_SECRET if MFA is enabled so re-login works unattended.
+  </Description>
+  <Category>Other</Category>
+  <Config Name="Monarch Email" Target="MONARCH_EMAIL" Default="" Mode="" Description="Your Monarch login email" Type="Variable" Display="always" Required="true" Mask="false"/>
+  <Config Name="Monarch Password" Target="MONARCH_PASSWORD" Default="" Mode="" Description="Your Monarch password. Set one under Settings &gt; Security if you sign in with Google" Type="Variable" Display="always" Required="false" Mask="true"/>
+  <Config Name="Monarch MFA Secret" Target="MONARCH_MFA_SECRET" Default="" Mode="" Description="TOTP secret from Monarch Settings &gt; Security &gt; Enable MFA (two-factor text code). Enables unattended re-login" Type="Variable" Display="always" Required="false" Mask="true"/>
+  <Config Name="Tidbyt Device ID" Target="TIDBYT_DEVICE_ID" Default="" Mode="" Description="Tidbyt cloud device id, or the device id in Tronbyt" Type="Variable" Display="always" Required="true" Mask="false"/>
+  <Config Name="Tidbyt API Key" Target="TIDBYT_API_KEY" Default="" Mode="" Description="Tidbyt API key, or the per-device key from the Tronbyt UI" Type="Variable" Display="always" Required="true" Mask="true"/>
+  <Config Name="Push API Base" Target="TIDBYT_API_BASE" Default="https://api.tidbyt.com/v0" Mode="" Description="Leave default for Tidbyt cloud, or http://server:port/v0 for Tronbyt" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="Views" Target="VIEWS" Default="networth,goal,cashflow,bill" Mode="" Description="Comma-separated rotation order: networth, goal, cashflow, bill" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="Update Interval" Target="UPDATE_INTERVAL" Default="60" Mode="" Description="Seconds each view stays on screen" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="Goal ID" Target="GOAL_ID" Default="" Mode="" Description="Optional: show a specific savings goal instead of the first active one" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="Timezone" Target="TZ" Default="America/Los_Angeles" Mode="" Description="Timezone for logs and today's date" Type="Variable" Display="always" Required="false" Mask="false"/>
+</Container>
