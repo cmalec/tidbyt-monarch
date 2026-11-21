@@ -10,6 +10,7 @@ from app.renderer import render, render_error
 
 FETCHERS = {
     "networth": "net_worth",
+    "budget": "budget",
     "goal": "goal",
     "cashflow": "cashflow",
     "bill": "next_bill",

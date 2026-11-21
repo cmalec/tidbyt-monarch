@@ -12,6 +12,7 @@ from app.renderer import render, render_error, money
 
 SYNTHETIC = {
     "networth": {"value": 412_345.67, "accounts": 9},
+    "budget": {"name": "TOTAL", "planned": 4200, "actual": 3100, "pct": 73.8, "month": "Nov"},
     "goal": {"name": "Emergency Fund", "target": 20000, "current": 13600, "pct": 68.0},
     "cashflow": {"income": 8100, "expense": 5740, "savings": 2360, "month": "Nov"},
     "bill": {"name": "Mortgage", "amount": 2140, "days": 6},
@@ -20,6 +21,7 @@ SYNTHETIC = {
 # Edge cases worth eyeballing: huge number, negative cashflow, long names, no data.
 EDGE = {
     "networth": {"value": -1_234_567, "accounts": 3},
+    "budget": {"name": "TOTAL", "planned": 1000, "actual": 1450, "pct": 145.0, "month": "Nov"},
     "goal": {"name": "Kitchen Remodel And Then Some", "target": 50000, "current": 50000, "pct": 100.0},
     "cashflow": {"income": 8100, "expense": 12000, "savings": -3900, "month": "Nov"},
     "bill": {"name": "American Express Platinum Card", "amount": 12890.44, "days": 0},

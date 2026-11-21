@@ -18,7 +18,7 @@ RUN mkdir -p /data
 ENV PYTHONUNBUFFERED=1
 ENV DATA_DIR=/data
 ENV UPDATE_INTERVAL=60
-ENV VIEWS=networth,goal,cashflow,bill
+ENV VIEWS=networth,budget,cashflow,bill
 ENV TIDBYT_API_BASE=https://api.tidbyt.com/v0
 ENV TZ=America/Los_Angeles
 

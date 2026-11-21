@@ -70,6 +70,17 @@ def _ellipsize(text: str, max_w: int, size: int) -> str:
     return (text + "...") if text else "..."
 
 
+def _fit_name(text: str, max_w: int) -> tuple[str, object]:
+    """Best rendering of a name: whole string at the largest size that fits,
+    else the most characters that fit at a smaller size."""
+    for size in (7, 6):
+        font = _font(size)
+        if _measure(text, font)[0] <= max_w:
+            return text, font
+    size = 6
+    return _ellipsize(text, max_w, size), _font(size)
+
+
 def money(value) -> str:
     """Compact currency: $987, $8.2K, $42K, $412K, $1.24M, -$412K."""
     if value is None:
@@ -109,8 +120,8 @@ def render_goal(data: dict) -> bytes:
         _label(draw, "NO GOAL")
         return _encode(img)
 
-    name = _ellipsize(data["name"], WIDTH - 2 * MARGIN, 7)
-    draw.text((MARGIN, MARGIN), name, fill=COLOR_LABEL, font=_font(7))
+    name, name_font = _fit_name(data["name"], WIDTH - 2 * MARGIN)
+    draw.text((MARGIN, MARGIN), name, fill=COLOR_LABEL, font=name_font)
 
     pct = data.get("pct")
     text = f"{pct:.0f}%" if pct is not None else "n/a"
@@ -122,6 +133,33 @@ def render_goal(data: dict) -> bytes:
     if pct:
         fill_w = left + max(1, int((right - left) * min(pct, 100.0) / 100.0))
         draw.rectangle([left, bar_y, min(fill_w, right), bar_y + bar_h - 1], fill=COLOR_POS)
+    return _encode(img)
+
+
+def render_budget(data: dict) -> bytes:
+    img, draw = _blank()
+    if data.get("missing"):
+        _label(draw, "NO CATEGORY", color=COLOR_NEG)
+        _draw_centered(draw, data["missing"], 12, [10, 8, 7], COLOR_TEXT, bold=False)
+        return _encode(img)
+
+    month = data.get("month") or ""
+    label = "BUDGET" if data.get("name") == "TOTAL" else data.get("name", "BUDGET")
+    _label(draw, f"{label} {month}".strip()[:18])
+
+    pct = data.get("pct")
+    if pct is None:
+        _draw_centered(draw, "n/a", 9, [16, 14, 12], COLOR_LABEL)
+        return _encode(img)
+
+    color = COLOR_POS if pct <= 100 else COLOR_NEG
+    _draw_centered(draw, f"{pct:.0f}%", 8, [18, 16, 14, 12], color)
+
+    bar_y, bar_h = 25, 3
+    left, right = MARGIN, WIDTH - MARGIN - 1
+    draw.rectangle([left, bar_y, right, bar_y + bar_h - 1], fill=COLOR_BAR_BG)
+    fill_w = left + max(1, min(int((right - left) * pct / 100.0), right - left))
+    draw.rectangle([left, bar_y, min(fill_w, right), bar_y + bar_h - 1], fill=color)
     return _encode(img)
 
 
@@ -147,8 +185,8 @@ def render_bill(data: dict) -> bytes:
         _label(draw, "NO BILL FOUND")
         return _encode(img)
 
-    name = _ellipsize(data["name"], WIDTH - 2 * MARGIN, 7)
-    draw.text((MARGIN, MARGIN), name, fill=COLOR_LABEL, font=_font(7))
+    name, name_font = _fit_name(data["name"], WIDTH - 2 * MARGIN)
+    draw.text((MARGIN, MARGIN), name, fill=COLOR_LABEL, font=name_font)
     _draw_centered(draw, money(data.get("amount")), 9, [16, 14, 12], COLOR_TEXT)
 
     days = data.get("days")
@@ -169,6 +207,7 @@ def render_error(reason: str = "") -> bytes:
 
 RENDERERS = {
     "networth": render_networth,
+    "budget": render_budget,
     "goal": render_goal,
     "cashflow": render_cashflow,
     "bill": render_bill,

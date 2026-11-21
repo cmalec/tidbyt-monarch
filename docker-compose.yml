@@ -17,7 +17,7 @@ services:
       # Tidbyt cloud by default; for Tronbyt use http://<server>:<port>/v0
       - TIDBYT_API_BASE=${TIDBYT_API_BASE:-https://api.tidbyt.com/v0}
       # Optional behaviour
-      - VIEWS=${VIEWS:-networth,goal,cashflow,bill}
+      - VIEWS=${VIEWS:-networth,budget,cashflow,bill}
       - UPDATE_INTERVAL=${UPDATE_INTERVAL:-60}
       - GOAL_ID=${GOAL_ID:-}
       - TZ=${TZ:-America/Los_Angeles}

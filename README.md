@@ -18,7 +18,8 @@ One view per push, cycling through `VIEWS`. At the default 60 seconds each view 
 | View | Frame |
 |---|---|
 | `networth` | Net worth as a big number, assets and liabilities included per Monarch's own setting |
-| `goal` | One savings goal: name, percent complete, progress bar |
+| `budget` | This month's budget: percent used, bar, and totals. Set `BUDGET_CATEGORY` to track one category instead |
+| `goal` | One savings goal: name, percent complete, progress bar. Only useful if you have goals in Monarch |
 | `cashflow` | This month's net savings, with income and expense on the last line |
 | `bill` | The next outgoing recurring bill: name, amount, days until due |
 
@@ -34,7 +35,8 @@ When something breaks, the panel shows a `MONARCH OFFLINE` frame rather than fre
 | `TIDBYT_DEVICE_ID` | Yes | - | Device id on Tidbyt cloud, or the device id in Tronbyt |
 | `TIDBYT_API_KEY` | Yes | - | Tidbyt API key, or the per-device key from Tronbyt |
 | `TIDBYT_API_BASE` | No | `https://api.tidbyt.com/v0` | Push target. Tronbyt: `http://<host>:<port>/v0` |
-| `VIEWS` | No | `networth,goal,cashflow,bill` | Any subset of the four views, in rotation order |
+| `VIEWS` | No | `networth,budget,cashflow,bill` | Any subset of the five views, in rotation order |
+| `BUDGET_CATEGORY` | No | - | Budget category name to track, exact match. Empty shows the month's totals |
 | `UPDATE_INTERVAL` | No | `60` | Seconds each view stays on the panel |
 | `GOAL_ID` | No | - | Show a specific savings goal instead of the first active one |
 | `TZ` | No | `America/Los_Angeles` | Timezone for logs and "today" |
@@ -63,6 +65,8 @@ Credentials live only in the container. Rendering locally means the frame is pus
 ## Diagnostics
 
 `python -m app.dump` prints the shape of each Monarch payload plus what the parsers extracted. Run it first if a frame shows `n/a`, since Monarch changes its GraphQL fields.
+
+`python -m app.live` renders the real views with your credentials to `/out/live-*.png`, which is the fastest way to see what the panel will show without waiting for a push.
 
 `python -m tools.preview /out` renders every view from synthetic data and asserts nothing touches the frame border.
 

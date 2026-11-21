@@ -124,35 +124,109 @@ class MonarchSource:
         payload = await self.mm.get_cashflow_summary(
             start_date=start.isoformat(), end_date=today.isoformat()
         )
-        income = _num(_find(payload, "sumIncome", "totalIncome", "income"))
-        expense = _num(_find(payload, "sumExpense", "totalExpense", "expense"))
-        savings = _num(_find(payload, "savings", "netSavings", "net"))
+        summary = (payload.get("summary") or [{}])[0].get("summary", {}) if isinstance(
+            payload.get("summary"), list) else payload.get("summary", {})
+
+        income = _num(summary.get("sumIncome"))
+        # Monarch reports expenses as a negative number
+        expense = _num(summary.get("sumExpense"))
+        expense = abs(expense) if expense is not None else None
+        savings = _num(summary.get("savings"))
         if savings is None and income is not None and expense is not None:
             savings = income - expense
-        return {"income": income, "expense": expense, "savings": savings, "month": start.strftime("%b")}
+        rate = _num(summary.get("savingsRate"))
+        return {
+            "income": income,
+            "expense": expense,
+            "savings": savings,
+            "rate": rate,
+            "month": start.strftime("%b"),
+        }
+
+    async def budget(self) -> dict:
+        """Budget progress for the current month.
+
+        Shows one category when BUDGET_CATEGORY names one, else the totals.
+        """
+        today = date.today()
+        start = today.replace(day=1)
+        payload = await self.mm.get_budgets(
+            start_date=start.isoformat(), end_date=today.isoformat()
+        )
+
+        names = {}
+
+        def collect(node):
+            if isinstance(node, dict):
+                ident, name = node.get("id"), node.get("name")
+                if ident and isinstance(name, str) and name:
+                    names[str(ident)] = name
+                for value in node.values():
+                    collect(value)
+            elif isinstance(node, list):
+                for value in node:
+                    collect(value)
+
+        collect(payload.get("categoryGroups"))
+
+        rows = (payload.get("budgetData") or {}).get("monthlyAmountsByCategory") or []
+        total_planned = total_actual = 0.0
+        chosen = None
+        for row in rows:
+            category = row.get("category") or {}
+            amounts = row.get("monthlyAmounts") or []
+            if not amounts:
+                continue
+            month = amounts[0]
+            planned = _num(month.get("plannedCashFlowAmount"), 0.0) or 0.0
+            actual = abs(_num(month.get("actualAmount"), 0.0) or 0.0)
+            name = names.get(str(category.get("id")), "")
+            if config.BUDGET_CATEGORY and name.lower() == config.BUDGET_CATEGORY.lower():
+                chosen = {"name": name, "planned": planned, "actual": actual}
+            # Totals only cover categories that actually have a budget set.
+            # Unbudgeted rows include transfers, credit card payments and
+            # income, and summing them produced 449% "used" on real data.
+            if planned > 0:
+                total_planned += planned
+                total_actual += actual
+
+        if config.BUDGET_CATEGORY:
+            if not chosen:
+                return {"name": None, "missing": config.BUDGET_CATEGORY}
+            target = chosen
+        else:
+            target = {"name": "TOTAL", "planned": total_planned, "actual": total_actual}
+
+        pct = None
+        if target["planned"] > 0:
+            pct = target["actual"] / target["planned"] * 100.0
+        return {**target, "pct": pct, "month": start.strftime("%b")}
 
     async def next_bill(self) -> dict:
         payload = await self.mm.get_recurring_transaction_streams(include_liabilities=True)
         streams = _as_records(payload, "recurringTransactionStreams", "streams")
         today = datetime.now(timezone.utc).date()
         upcoming = []
-        for stream in streams:
+        for entry in streams:
+            # Records nest the definition under "stream" and the due date under
+            # "nextForecastedTransaction".
+            stream = entry.get("stream") if isinstance(entry, dict) else None
+            if not isinstance(stream, dict):
+                continue
             if stream.get("isActive") is False:
                 continue
-            amount = _num(_find(stream, "amount", "averageAmount"))
-            if amount is None or amount >= 0:
-                continue  # bills only: outgoing money
-            raw = _find(stream, "nextDate", "nextForecast", "nextOccurrence")
-            if not raw:
+            if (stream.get("recurringType") or "").lower() == "income":
+                continue
+            forecast = entry.get("nextForecastedTransaction") or {}
+            raw_date = forecast.get("date") or stream.get("baseDate")
+            amount = _num(forecast.get("amount"), _num(stream.get("amount")))
+            if not raw_date or amount is None or amount >= 0:
                 continue
             try:
-                when = datetime.fromisoformat(str(raw).replace("Z", "+00:00")).date()
+                when = date.fromisoformat(str(raw_date)[:10])
             except ValueError:
-                try:
-                    when = date.fromisoformat(str(raw)[:10])
-                except ValueError:
-                    continue
-            if when < today - timedelta(days=1):
+                continue
+            if when < today:
                 continue
             upcoming.append((when, abs(amount), stream.get("name") or "Bill"))
         if not upcoming:
