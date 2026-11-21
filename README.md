@@ -42,7 +42,7 @@ A frame is only pushed when its pixels change. Since the grid's data is cached f
 | `BUDGET_CATEGORY` | No | - | Budget category name to track, exact match. Empty shows the month's totals |
 | `UPDATE_INTERVAL` | No | `180` | Seconds each view stays on the panel |
 | `CACHE_TTL` | No | `10800` | Seconds fetched data is reused before calling Monarch again. `0` disables the cache |
-| `GOTIFY_URL` | No | - | Gotify base URL. Set with `GOTIFY_TOKEN` to get alerts when the app starts failing |
+| `GOTIFY_URL` | No | - | Gotify base URL. Use an address that resolves inside the container, e.g. `http://192.168.1.77:8070`, not a tailnet MagicDNS name |
 | `GOTIFY_TOKEN` | No | - | Gotify app token |
 | `ALERT_AFTER_FAILURES` | No | `2` | Consecutive failed cycles before alerting |
 | `ALERT_REPEAT_EVERY` | No | `20` | Repeat the alert every N failures while still broken |
