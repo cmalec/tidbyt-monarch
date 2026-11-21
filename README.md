@@ -19,12 +19,14 @@ By default one frame holds everything: net worth, budget, savings rate and cashf
 |---|---|
 | `dashboard` | All four at once in a 2x2 grid: net worth, budget percent, savings rate, cashflow. Three API calls per frame |
 | `networth` | Net worth as a big number, assets and liabilities included per Monarch's own setting |
-| `budget` | This month's budget: percent used, bar, and totals. Set `BUDGET_CATEGORY` to track one category instead |
+| `budget` | This month's budget: percent used, bar, and totals. Set `BUDGET_CATEGORY` to track one category instead. Month-to-date, so it resets on the 1st |
 | `goal` | One savings goal: name, percent complete, progress bar. Only useful if you have goals in Monarch |
-| `cashflow` | This month's net savings, with income and expense on the last line |
+| `cashflow` | This month's net savings, with income and expense on the last line. Month-to-date, so it resets on the 1st |
 | `bill` | The next outgoing recurring bill: name, amount, days until due |
 
-When something breaks, the panel shows a `MONARCH OFFLINE` frame rather than freezing on stale numbers.
+When something breaks, the panel shows a `MONARCH OFFLINE` frame rather than freezing on stale numbers, and with Gotify configured you get one alert at the threshold instead of one per cycle.
+
+A frame is only pushed when its pixels change. Since the grid's data is cached for three hours, most cycles log `unchanged, skipping push`, which keeps traffic and logs quiet.
 
 ## Environment variables
 
@@ -40,6 +42,10 @@ When something breaks, the panel shows a `MONARCH OFFLINE` frame rather than fre
 | `BUDGET_CATEGORY` | No | - | Budget category name to track, exact match. Empty shows the month's totals |
 | `UPDATE_INTERVAL` | No | `180` | Seconds each view stays on the panel |
 | `CACHE_TTL` | No | `10800` | Seconds fetched data is reused before calling Monarch again. `0` disables the cache |
+| `GOTIFY_URL` | No | - | Gotify base URL. Set with `GOTIFY_TOKEN` to get alerts when the app starts failing |
+| `GOTIFY_TOKEN` | No | - | Gotify app token |
+| `ALERT_AFTER_FAILURES` | No | `2` | Consecutive failed cycles before alerting |
+| `ALERT_REPEAT_EVERY` | No | `20` | Repeat the alert every N failures while still broken |
 | `GOAL_ID` | No | - | Show a specific savings goal instead of the first active one |
 | `TZ` | No | `America/Los_Angeles` | Timezone for logs and "today" |
 
@@ -59,6 +65,10 @@ docker compose up -d
 ```
 
 Or on Unraid, use the template in `templates/tidbyt-monarch-template.xml`.
+
+## Month-to-date behaviour
+
+`budget` and `cashflow` cover the current calendar month, so both reset on the 1st. Because data is cached for `CACHE_TTL` seconds, the first hours of a new month can still show the previous month's figures until the cache expires. Lower `CACHE_TTL` if that bothers you, or accept a few stale hours once a month.
 
 ## Security
 

@@ -19,6 +19,9 @@ services:
       # Optional behaviour
       - VIEWS=${VIEWS:-dashboard}
       - CACHE_TTL=${CACHE_TTL:-10800}
+      # Optional Gotify alerting when the app cannot fetch or push
+      - GOTIFY_URL=${GOTIFY_URL:-}
+      - GOTIFY_TOKEN=${GOTIFY_TOKEN:-}
       - UPDATE_INTERVAL=${UPDATE_INTERVAL:-180}
       - GOAL_ID=${GOAL_ID:-}
       - BUDGET_CATEGORY=${BUDGET_CATEGORY:-}

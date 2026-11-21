@@ -62,6 +62,15 @@ except ValueError:
 if CACHE_TTL < 0:
     raise ValueError("CACHE_TTL must be zero or greater")
 
+# Optional Gotify alerting: leave unset to disable.
+GOTIFY_URL = os.getenv("GOTIFY_URL", "")
+GOTIFY_TOKEN = os.getenv("GOTIFY_TOKEN", "")
+
+# Consecutive failed cycles before alerting, and how often to repeat while
+# still broken. One alert per incident, not one per cycle.
+ALERT_AFTER_FAILURES = int(os.getenv("ALERT_AFTER_FAILURES", "2"))
+ALERT_REPEAT_EVERY = int(os.getenv("ALERT_REPEAT_EVERY", "20"))
+
 # Number of months of history for the cashflow view.
 CASHFLOW_MONTHS = int(os.getenv("CASHFLOW_MONTHS", "1"))
 

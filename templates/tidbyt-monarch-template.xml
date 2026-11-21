@@ -28,5 +28,7 @@
   <Config Name="Cache TTL" Target="CACHE_TTL" Default="10800" Mode="" Description="Seconds to reuse fetched Monarch data before calling the API again (0 disables the cache)" Type="Variable" Display="always" Required="false" Mask="false"/>
   <Config Name="Update Interval" Target="UPDATE_INTERVAL" Default="180" Mode="" Description="Seconds each view stays on screen" Type="Variable" Display="always" Required="false" Mask="false"/>
   <Config Name="Goal ID" Target="GOAL_ID" Default="" Mode="" Description="Optional: show a specific savings goal instead of the first active one" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="Gotify URL" Target="GOTIFY_URL" Default="" Mode="" Description="Optional: Gotify base URL for failure alerts (e.g. https://gotify.example.com)" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="Gotify Token" Target="GOTIFY_TOKEN" Default="" Mode="" Description="Optional: Gotify app token for failure alerts" Type="Variable" Display="always" Required="false" Mask="true"/>
   <Config Name="Timezone" Target="TZ" Default="America/Los_Angeles" Mode="" Description="Timezone for logs and today's date" Type="Variable" Display="always" Required="false" Mask="false"/>
 </Container>
