@@ -234,7 +234,10 @@ def _dashboard_cells(data: dict) -> list[dict]:
     savings = cashflow.get("savings")
 
     specs = [
-        ("NW", compact_money(networth.get("value")), COLOR_LABEL, COLOR_TEXT),
+        # Net worth stays neutral when positive: a permanent green would make
+        # green meaningless, but negative net worth is a genuine alarm.
+        ("NW", compact_money(networth.get("value")), COLOR_LABEL,
+         COLOR_TEXT if (networth.get("value") or 0) >= 0 else COLOR_NEG),
         ("BUD", f"{pct:.0f}%" if pct is not None else "n/a", COLOR_LABEL,
          COLOR_POS if (pct or 0) <= 100 else COLOR_NEG),
         ("SAVE", f"{rate * 100:.0f}%" if rate is not None else "n/a", COLOR_LABEL,

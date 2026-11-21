@@ -66,6 +66,19 @@ docker compose up -d
 
 Or on Unraid, use the template in `templates/tidbyt-monarch-template.xml`.
 
+## Colours
+
+Labels are always blue. Values follow one idea, "green is fine, red wants attention, white is just information":
+
+| Cell | Rule |
+|---|---|
+| `NW` | White when positive, red when negative. It is not green on purpose, a permanently green cell would make green meaningless |
+| `BUD` | Green at or under 100% of the month's budget, red above it. Measured against the budget, not against zero |
+| `SAVE` | Green at or above a 0% savings rate, red below |
+| `CF` | Green when net cashflow is positive, red when negative |
+
+`tools/color_check.py` asserts these by sampling rendered pixels.
+
 ## Month-to-date behaviour
 
 `budget` and `cashflow` cover the current calendar month, so both reset on the 1st. Because data is cached for `CACHE_TTL` seconds, the first hours of a new month can still show the previous month's figures until the cache expires. Lower `CACHE_TTL` if that bothers you, or accept a few stale hours once a month.
