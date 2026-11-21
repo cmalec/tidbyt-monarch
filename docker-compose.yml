@@ -18,7 +18,7 @@ services:
       - TIDBYT_API_BASE=${TIDBYT_API_BASE:-https://api.tidbyt.com/v0}
       # Optional behaviour
       - VIEWS=${VIEWS:-networth,budget,cashflow,bill}
-      - UPDATE_INTERVAL=${UPDATE_INTERVAL:-60}
+      - UPDATE_INTERVAL=${UPDATE_INTERVAL:-180}
       - GOAL_ID=${GOAL_ID:-}
       - TZ=${TZ:-America/Los_Angeles}
     volumes:

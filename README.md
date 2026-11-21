@@ -11,7 +11,7 @@ It renders the frames itself and pushes them to your device. No Starlark, no clo
 3. **Push** - sends it to your Tidbyt cloud device or your own Tronbyt server
 4. **Rotate** - sleeps `UPDATE_INTERVAL`, then pushes the next view
 
-One view per push, cycling through `VIEWS`. At the default 60 seconds each view is on screen for a minute.
+One view per push, cycling through `VIEWS`. At the default 180 seconds each view is on screen for three minutes.
 
 ## Views
 
@@ -37,7 +37,7 @@ When something breaks, the panel shows a `MONARCH OFFLINE` frame rather than fre
 | `TIDBYT_API_BASE` | No | `https://api.tidbyt.com/v0` | Push target. Tronbyt: `http://<host>:<port>/v0` |
 | `VIEWS` | No | `networth,budget,cashflow,bill` | Any subset of the five views, in rotation order |
 | `BUDGET_CATEGORY` | No | - | Budget category name to track, exact match. Empty shows the month's totals |
-| `UPDATE_INTERVAL` | No | `60` | Seconds each view stays on the panel |
+| `UPDATE_INTERVAL` | No | `180` | Seconds each view stays on the panel |
 | `GOAL_ID` | No | - | Show a specific savings goal instead of the first active one |
 | `TZ` | No | `America/Los_Angeles` | Timezone for logs and "today" |
 

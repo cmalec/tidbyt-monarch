@@ -36,8 +36,9 @@ def main():
         f"MONARCH_EMAIL={found['monarch-email']}",
         f"MONARCH_PASSWORD={found['monarch-password']}",
         f"MONARCH_MFA_SECRET={found.get('monarch-mfa-secret') or ''}",
-        "TIDBYT_DEVICE_ID=pixelnode",
-        "TIDBYT_API_KEY=unused-for-preview",
+        f"TIDBYT_DEVICE_ID={os.environ.get('TRONBYT_DEVICE', 'pixelnode')}",
+        f"TIDBYT_API_KEY={os.environ.get('TRONBYT_KEY', 'unused-for-preview')}",
+        f"TIDBYT_API_BASE={os.environ.get('TRONBYT_URL', 'https://api.tidbyt.com/v0')}",
         "DATA_DIR=/data",
     ]
     for extra in sys.argv[2:]:

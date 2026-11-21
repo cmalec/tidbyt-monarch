@@ -25,7 +25,7 @@
   <Config Name="Tidbyt API Key" Target="TIDBYT_API_KEY" Default="" Mode="" Description="Tidbyt API key, or the per-device key from the Tronbyt UI" Type="Variable" Display="always" Required="true" Mask="true"/>
   <Config Name="Push API Base" Target="TIDBYT_API_BASE" Default="https://api.tidbyt.com/v0" Mode="" Description="Leave default for Tidbyt cloud, or http://server:port/v0 for Tronbyt" Type="Variable" Display="always" Required="false" Mask="false"/>
   <Config Name="Views" Target="VIEWS" Default="networth,budget,cashflow,bill" Mode="" Description="Comma-separated rotation order: networth, goal, cashflow, bill" Type="Variable" Display="always" Required="false" Mask="false"/>
-  <Config Name="Update Interval" Target="UPDATE_INTERVAL" Default="60" Mode="" Description="Seconds each view stays on screen" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="Update Interval" Target="UPDATE_INTERVAL" Default="180" Mode="" Description="Seconds each view stays on screen" Type="Variable" Display="always" Required="false" Mask="false"/>
   <Config Name="Goal ID" Target="GOAL_ID" Default="" Mode="" Description="Optional: show a specific savings goal instead of the first active one" Type="Variable" Display="always" Required="false" Mask="false"/>
   <Config Name="Timezone" Target="TZ" Default="America/Los_Angeles" Mode="" Description="Timezone for logs and today's date" Type="Variable" Display="always" Required="false" Mask="false"/>
 </Container>

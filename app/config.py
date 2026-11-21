@@ -31,7 +31,7 @@ TIDBYT_API_KEY = os.getenv("TIDBYT_API_KEY", "")
 TIDBYT_API_BASE = os.getenv("TIDBYT_API_BASE", "https://api.tidbyt.com/v0").rstrip("/")
 
 # --- Behaviour -----------------------------------------------------------
-_update_interval_raw = os.getenv("UPDATE_INTERVAL", "60")
+_update_interval_raw = os.getenv("UPDATE_INTERVAL", "180")
 try:
     UPDATE_INTERVAL = int(_update_interval_raw)
 except ValueError:
