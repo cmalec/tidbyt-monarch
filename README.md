@@ -17,6 +17,7 @@ One view per push, cycling through `VIEWS`. At the default 180 seconds each view
 
 | View | Frame |
 |---|---|
+| `dashboard` | All four at once in a 2x2 grid: net worth, budget percent, savings rate, cashflow. Three API calls per frame |
 | `networth` | Net worth as a big number, assets and liabilities included per Monarch's own setting |
 | `budget` | This month's budget: percent used, bar, and totals. Set `BUDGET_CATEGORY` to track one category instead |
 | `goal` | One savings goal: name, percent complete, progress bar. Only useful if you have goals in Monarch |

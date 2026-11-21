@@ -37,6 +37,15 @@ def _measure(text: str, font) -> tuple[int, int]:
     return bbox[2] - bbox[0], bbox[3] - bbox[1]
 
 
+def _ink_bottom(text: str, font) -> int:
+    """Offset from the draw origin to the last ink row.
+
+    getbbox height omits the top offset, so placing text with
+    y + height leaves ink lower than expected and clips on the last row.
+    """
+    return font.getbbox(text)[3]
+
+
 def _fit(text: str, max_w: int, sizes, bold: bool = True):
     """Largest font in `sizes` (descending) whose rendering fits max_w."""
     fallback = _font(min(sizes), bold)
@@ -51,8 +60,8 @@ def _draw_centered(draw, text: str, y: int, sizes, color, bold: bool = True,
                    max_w: int | None = None) -> None:
     """Draw text horizontally centered, clamped inside the bottom margin."""
     font = _fit(text, (max_w or WIDTH) - 2 * MARGIN, sizes, bold)
-    w, h = _measure(text, font)
-    y = min(y, HEIGHT - MARGIN - h)
+    w, _ = _measure(text, font)
+    y = min(y, HEIGHT - MARGIN - _ink_bottom(text, font))
     y = max(y, MARGIN)
     draw.text(((WIDTH - w) // 2, y), text, fill=color, font=font)
 
@@ -196,6 +205,87 @@ def render_bill(data: dict) -> bytes:
     return _encode(img)
 
 
+
+def compact_money(value) -> str:
+    """Money for a 32px-wide cell: at most 5 characters plus a sign."""
+    if value is None:
+        return "n/a"
+    sign = "-" if value < 0 else ""
+    v = abs(float(value))
+    if v >= 1_000_000:
+        return f"{sign}${v / 1_000_000:.1f}M"
+    if v >= 10_000:
+        return f"{sign}${v / 1_000:.0f}K"
+    if v >= 1_000:
+        return f"{sign}${v / 1_000:.1f}K"
+    return f"{sign}${v:.0f}"
+
+
+def _dashboard_cells(data: dict) -> list[dict]:
+    """Build the four grid cells, including their fitted fonts."""
+    networth = data.get("networth") or {}
+    budget = data.get("budget") or {}
+    cashflow = data.get("cashflow") or {}
+
+    pct = budget.get("pct")
+    rate = cashflow.get("rate")
+    savings = cashflow.get("savings")
+
+    specs = [
+        ("NW", compact_money(networth.get("value")), COLOR_LABEL, COLOR_TEXT),
+        ("BUD", f"{pct:.0f}%" if pct is not None else "n/a", COLOR_LABEL,
+         COLOR_POS if (pct or 0) <= 100 else COLOR_NEG),
+        ("SAVE", f"{rate * 100:.0f}%" if rate is not None else "n/a", COLOR_LABEL,
+         COLOR_POS if (rate or 0) >= 0 else COLOR_NEG),
+        ("CF", ("+" if (savings or 0) >= 0 else "") + compact_money(savings), COLOR_LABEL,
+         COLOR_POS if (savings or 0) >= 0 else COLOR_NEG),
+    ]
+
+    cells = []
+    cell_w, cell_h = WIDTH // 2, HEIGHT // 2
+    for idx, (label, value, label_color, value_color) in enumerate(specs):
+        x = (idx % 2) * cell_w
+        y = (idx // 2) * cell_h
+        label_font = _fit(label, cell_w - 2, [7, 6, 5], bold=True)
+        value_font = _fit(value, cell_w - 2, [11, 10, 9, 8, 7, 6], bold=True)
+        value_w = _measure(value, value_font)[0]
+        cells.append({
+            "x": x, "y": y, "w": cell_w, "h": cell_h,
+            "label": label, "value": value,
+            "label_color": label_color, "value_color": value_color,
+            "label_font": label_font, "value_font": value_font,
+            "fits": value_w <= cell_w - 2,
+            "value_w": value_w,
+        })
+    return cells
+
+
+def dashboard_fit_report(data: dict) -> list[str]:
+    """Problems a caller can assert on: any value wider than its cell."""
+    problems = []
+    for cell in _dashboard_cells(data):
+        if not cell["fits"]:
+            problems.append(
+                f"dashboard {cell['label']}: {cell['value']!r} is {cell['value_w']}px, "
+                f"cell is {cell['w'] - 2}px"
+            )
+    return problems
+
+
+def render_dashboard(data: dict) -> bytes:
+    """Four metrics in a 2x2 grid: net worth, budget, savings rate, cashflow."""
+    img, draw = _blank()
+    for cell in _dashboard_cells(data):
+        lw, _ = _measure(cell["label"], cell["label_font"])
+        draw.text((cell["x"] + (cell["w"] - lw) // 2, cell["y"]),
+                  cell["label"], fill=cell["label_color"], font=cell["label_font"])
+        vw, _ = _measure(cell["value"], cell["value_font"])
+        value_y = cell["y"] + cell["h"] - _ink_bottom(cell["value"], cell["value_font"]) - 1
+        value_y = max(cell["y"] + 1, value_y)
+        draw.text((cell["x"] + (cell["w"] - vw) // 2, value_y),
+                  cell["value"], fill=cell["value_color"], font=cell["value_font"])
+    return _encode(img)
+
 def render_error(reason: str = "") -> bytes:
     img, draw = _blank()
     _label(draw, "MONARCH", color=COLOR_NEG)
@@ -206,6 +296,7 @@ def render_error(reason: str = "") -> bytes:
 
 
 RENDERERS = {
+    "dashboard": render_dashboard,
     "networth": render_networth,
     "budget": render_budget,
     "goal": render_goal,

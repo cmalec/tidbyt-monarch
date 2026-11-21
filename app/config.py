@@ -37,7 +37,7 @@ try:
 except ValueError:
     raise ValueError(f"UPDATE_INTERVAL must be an integer, got: {_update_interval_raw!r}")
 
-ALL_VIEWS = ("networth", "budget", "goal", "cashflow", "bill")
+ALL_VIEWS = ("dashboard", "networth", "budget", "goal", "cashflow", "bill")
 VIEWS = [v.strip().lower() for v in os.getenv("VIEWS", "networth,budget,cashflow,bill").split(",") if v.strip()]
 _unknown = [v for v in VIEWS if v not in ALL_VIEWS]
 if _unknown:

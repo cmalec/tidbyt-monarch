@@ -8,9 +8,14 @@ import sys
 
 from PIL import Image
 
-from app.renderer import render, render_error, money
+from app.renderer import dashboard_fit_report, render, render_error, money
 
 SYNTHETIC = {
+    "dashboard": {
+        "networth": {"value": 1_786_495.49},
+        "budget": {"name": "TOTAL", "planned": 24993, "actual": 18692, "pct": 74.8},
+        "cashflow": {"income": 24417, "expense": 18867, "savings": 5549.54, "rate": 0.2273},
+    },
     "networth": {"value": 412_345.67, "accounts": 9},
     "budget": {"name": "TOTAL", "planned": 4200, "actual": 3100, "pct": 73.8, "month": "Nov"},
     "goal": {"name": "Emergency Fund", "target": 20000, "current": 13600, "pct": 68.0},
@@ -20,6 +25,11 @@ SYNTHETIC = {
 
 # Edge cases worth eyeballing: huge number, negative cashflow, long names, no data.
 EDGE = {
+    "dashboard": {
+        "networth": {"value": -1_234_567},
+        "budget": {"name": "TOTAL", "planned": 1000, "actual": 1450, "pct": 145.0},
+        "cashflow": {"income": 8100, "expense": 12000, "savings": -3900, "rate": -0.48},
+    },
     "networth": {"value": -1_234_567, "accounts": 3},
     "budget": {"name": "TOTAL", "planned": 1000, "actual": 1450, "pct": 145.0, "month": "Nov"},
     "goal": {"name": "Kitchen Remodel And Then Some", "target": 50000, "current": 50000, "pct": 100.0},
@@ -53,6 +63,13 @@ def check_fit() -> None:
                 failures.append(f"{name}: lit pixel on horizontal edge y={y}")
 
 
+def check_dashboard() -> None:
+    """Every dashboard value must fit its 32px cell."""
+    for label, data in (("synthetic", SYNTHETIC["dashboard"]), ("edge", EDGE["dashboard"])):
+        for problem in dashboard_fit_report(data):
+            failures.append(f"dashboard[{label}]: {problem}")
+
+
 def check_money() -> None:
     cases = {
         987: "$987",
@@ -84,6 +101,7 @@ def main() -> int:
     )
     print("-- checks --")
     check_fit()
+    check_dashboard()
     check_money()
     for problem in failures:
         print("FAIL:", problem)

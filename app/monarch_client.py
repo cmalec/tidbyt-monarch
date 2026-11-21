@@ -202,6 +202,14 @@ class MonarchSource:
             pct = target["actual"] / target["planned"] * 100.0
         return {**target, "pct": pct, "month": start.strftime("%b")}
 
+    async def dashboard(self) -> dict:
+        """Everything the 2x2 grid needs, in three API calls."""
+        return {
+            "networth": await self.net_worth(),
+            "budget": await self.budget(),
+            "cashflow": await self.cashflow(),
+        }
+
     async def next_bill(self) -> dict:
         payload = await self.mm.get_recurring_transaction_streams(include_liabilities=True)
         streams = _as_records(payload, "recurringTransactionStreams", "streams")

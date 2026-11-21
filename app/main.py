@@ -9,6 +9,7 @@ from app.push_client import push_image
 from app.renderer import render, render_error
 
 FETCHERS = {
+    "dashboard": "dashboard",
     "networth": "net_worth",
     "budget": "budget",
     "goal": "goal",
